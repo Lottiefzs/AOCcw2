@@ -33,6 +33,8 @@ void* allocate ( size_t bytes ){
             new->next=node->next;
             node->next = new;
             new->previous = node;
+            if(new->next != NULL)
+                new->next->previous = new;
             new->isFree = true;
             new->size = (node->size - sizeof(Node) - bytes);
             node->size = bytes;
