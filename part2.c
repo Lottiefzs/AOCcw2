@@ -7,10 +7,12 @@
 #include <stdint.h>
 #include <stdio.h>
 #include <stdbool.h>
+#include <string.h>
 
 
 Node *first;
 Node *lastVisitedNode;
+void* (*allocate)(size_t bytes);
 
 typedef struct Node {
     struct Node *next;
@@ -20,15 +22,26 @@ typedef struct Node {
 } Node;
 
 
-void initialise(void *memory, size_t size) {
+void initialise(void *memory, size_t size, char *algorithm) {
     first = (Node *) memory;
     first->size = size - sizeof(Node);
     first->isFree = true;
     first->next = NULL;
     first->previous = NULL;
+    lastVisitedNode = first;
+    if(strcmp(algorithm, "bestFit") == 0){
+        allocate = &allocateBestFit;
+    }
+    if(strcmp(algorithm, "worstFit") == 0){
+        allocate = &allocateWorstFit;
+    }
+    if(strcmp(algorithm, "nextFit") == 0){
+        allocate = &allocateNextFit;
+    }
+
 };
 
-Node* allocateNode(Node *node, int bytes){
+Node *allocateNode(Node *node, int bytes) {
     node->isFree = false;
     Node *new = (Node *) ((char *) node + bytes + sizeof(Node));
     new->next = node->next;
@@ -95,43 +108,74 @@ void *allocateWorstFit(size_t bytes) {
     return NULL;
 };
 
-void deallocate ( void *memory ){
-    Node* node = (Node*) memory - 1;
+void *allocateNextFit(size_t bytes) {
+    Node *node = lastVisitedNode;;
+    do {
+        if (node->isFree && node->size >= (bytes + sizeof(Node))) {
+            node->isFree = false;
+            Node *new = (Node *) ((char *) node + bytes + sizeof(Node));
+            new->next = node->next;
+            node->next = new;
+            new->previous = node;
+            if (new->next != NULL)
+                new->next->previous = new;
+            new->isFree = true;
+            new->size = (node->size - sizeof(Node) - bytes);
+            node->size = bytes;
+            lastVisitedNode = new;
+            return node + 1;
+        }
+        if (node->isFree && node->size >= bytes) {
+            node->isFree = false;
+            lastVisitedNode = node;
+            return node + 1;
+        }
+        node = node->next;
+        if (node == NULL) {
+            node = first;
+        }
+    } while (node != lastVisitedNode);
+
+    return NULL;
+};
+
+void deallocate(void *memory) {
+    Node *node = (Node *) memory - 1;
     node->isFree = true;
 
-    if(node->next != NULL && node->next->isFree){
+    if (node->next != NULL && node->next->isFree) {
         node->size += node->next->size + sizeof(Node);
         node->next = node->next->next;
-        if(node->next != NULL){
+        if (node->next != NULL) {
             node->next->previous = node;
         }
     }
-    if(node->previous != NULL && node->previous->isFree){
+    if (node->previous != NULL && node->previous->isFree) {
         node->previous->size += node->size + sizeof(Node);
         node->previous->next = node->next;
-        if(node->next != NULL)
+        if (node->next != NULL)
             node->next->previous = node->previous;
     }
 };
 
 
+void printNode() {
+    Node *node = first;
+    do {
 
-void printNode(){
-    Node* node = first;
-    do{
-
-        printf("address %d - next %d - previous %d - isFree %i - size %u \n", node, node->next, node->previous, node->isFree, node->size);
+        printf("address %d - next %d - previous %d - isFree %i - size %u \n", node, node->next, node->previous,
+               node->isFree, node->size);
         node = node->next;
-    } while(node != NULL);
+    } while (node != NULL);
     printf("end\n");
 }
 
 
 //allocate all, de allocate B - no merging
-static void case1(){
-    void* a = allocateBestFit(50);
-    void* b = allocateBestFit(50);
-    void* c = allocateBestFit(50);
+static void case1() {
+    void *a = allocateBestFit(50);
+    void *b = allocateBestFit(50);
+    void *c = allocateBestFit(50);
     printNode();
     deallocate(b);
     printNode();
@@ -139,9 +183,9 @@ static void case1(){
 }
 
 //allocate a and b, de allocate b - merge b and remaining space
-static void case2(){
-    void* a = allocateBestFit(50);
-    void* b = allocateBestFit(50);
+static void case2() {
+    void *a = allocateBestFit(50);
+    void *b = allocateBestFit(50);
     printNode();
     deallocate(b);
     printNode();
@@ -149,10 +193,10 @@ static void case2(){
 }
 
 //allocate all, deallocate a & b - a & b merge
-static void case3(){
-    void* a = allocateBestFit(50);
-    void* b = allocateBestFit(50);
-    void* c = allocateBestFit(50);
+static void case3() {
+    void *a = allocateBestFit(50);
+    void *b = allocateBestFit(50);
+    void *c = allocateBestFit(50);
     printNode();
     deallocate(a);
     printNode();
@@ -162,11 +206,11 @@ static void case3(){
 }
 
 //allocate all, deallocate a, c, b - all merge
-static void case4(){
+static void case4() {
     printNode();
-    void* a = allocateBestFit(50);
-    void* b = allocateBestFit(50);
-    void* c = allocateBestFit(50);
+    void *a = allocateBestFit(50);
+    void *b = allocateBestFit(50);
+    void *c = allocateBestFit(50);
     printNode();
     deallocate(a);
     printNode();
@@ -177,73 +221,90 @@ static void case4(){
 }
 
 //allocate all memory - all nodes not free
-static void case5(){
+static void case5() {
     printNode();
-    void* a = allocateBestFit(50);
-    void* b = allocateBestFit(50);
-    void* c = allocateBestFit(50);
+    void *a = allocateBestFit(50);
+    void *b = allocateBestFit(50);
+    void *c = allocateBestFit(50);
     printNode();
-    void* d = allocateBestFit(191);
+    void *d = allocateBestFit(191);
     printNode();
 }
 
 //allocate 9
-static void bestFitTest10(){
+static void bestFitTest10() {
     printNode();
-    void* a = allocateBestFit(50);
-    void* b = allocateBestFit(20);
-    void* c = allocateBestFit(50);
-    void* d = allocateBestFit(10);
-    void* e = allocateBestFit(50);
+    void *a = allocateBestFit(50);
+    void *b = allocateBestFit(20);
+    void *c = allocateBestFit(50);
+    void *d = allocateBestFit(10);
+    void *e = allocateBestFit(50);
     printNode();
     deallocate(b);
     printNode();
     deallocate(d);
     printNode();
-    void* f = allocateBestFit(9);
+    void *f = allocateBestFit(9);
     printNode();
 }
 
 //allocate 19
-static void bestFitTest20(){
+static void bestFitTest20() {
     printNode();
-    void* a = allocateBestFit(50);
-    void* b = allocateBestFit(10);
-    void* c = allocateBestFit(50);
-    void* d = allocateBestFit(20);
-    void* e = allocateBestFit(50);
-    printNode();
-    deallocate(a);
-    printNode();
-    deallocate(d);
-    printNode();
-    void* f = allocateBestFit(19);
-    printNode();
-}
-
-static void worstFitTest20(){
-    printNode();
-    void* a = allocateWorstFit(120);
-    void* b = allocateWorstFit(10);
-    void* c = allocateWorstFit(50);
-    void* d = allocateWorstFit(20);
-    void* e = allocateWorstFit(50);
+    void *a = allocateBestFit(50);
+    void *b = allocateBestFit(10);
+    void *c = allocateBestFit(50);
+    void *d = allocateBestFit(20);
+    void *e = allocateBestFit(50);
     printNode();
     deallocate(a);
     printNode();
     deallocate(d);
     printNode();
-    void* f = allocateWorstFit(19);
+    void *f = allocateBestFit(19);
     printNode();
 }
 
-int main(){
+static void worstFitTest20() {
+    printNode();
+    void *a = allocateWorstFit(120);
+    void *b = allocateWorstFit(10);
+    void *c = allocateWorstFit(50);
+    void *d = allocateWorstFit(20);
+    void *e = allocateWorstFit(50);
+    printNode();
+    deallocate(a);
+    printNode();
+    deallocate(d);
+    printNode();
+    void *f = allocateWorstFit(19);
+    printNode();
+}
+
+static void nextFitTest() {
+    printNode();
+    void *a = allocateNextFit(10);
+    void *b = allocateNextFit(30);
+    void *c = allocateNextFit(50);
+    void *d = allocateNextFit(20);
+    void *e = allocate(50);
+    printNode();
+    deallocate(a);
+    printNode();
+    deallocate(d);
+    printNode();
+    void *g = allocateNextFit(97);
+    printNode();
+    void *h = allocateNextFit(6);
+    printNode();
+}
+
+int main() {
     setvbuf(stdout, NULL, _IONBF, 0);
     setvbuf(stderr, NULL, _IONBF, 0);
-    void* heap = malloc(1500);
+    void *heap = malloc(1500);
     size_t size = 500;
-    initialise(heap, size);
-
-    worstFitTest20();
+    initialise(heap, size, "bestFit");
+    nextFitTest();
 
 }
