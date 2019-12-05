@@ -10,6 +10,7 @@
 
 
 Node *first;
+Node *lastVisitedNode;
 
 typedef struct Node {
     struct Node *next;
@@ -39,14 +40,13 @@ Node* allocateNode(Node *node, int bytes){
     new->size = (node->size - sizeof(Node) - bytes);
 
     node->size = bytes;
-    return node;
+    return node + 1;
 }
 
 void *allocateBestFit(size_t bytes) {
 
     Node *smallestMemoryAddress = NULL;
     size_t smallestMemory = SIZE_MAX;
-
 
     for (Node *node = first; node != NULL; node = node->next) {
         if (node->isFree && node->size < smallestMemory && node->size >= bytes) {
@@ -60,23 +60,37 @@ void *allocateBestFit(size_t bytes) {
     }
 
     if (smallestMemoryAddress->size >= (bytes + sizeof(Node))) {
-        //use allocate node function
-        smallestMemoryAddress->isFree = false;
-        Node *new = (Node *) ((char *) smallestMemoryAddress + bytes + sizeof(Node));
-        new->next = smallestMemoryAddress->next;
-        smallestMemoryAddress->next = new;
-        new->previous = smallestMemoryAddress;
-        if (new->next != NULL)
-            new->next->previous = new;
-        new->isFree = true;
-        new->size = (smallestMemoryAddress->size - sizeof(Node) - bytes);
-
-        smallestMemoryAddress->size = bytes;
-        return smallestMemoryAddress + 1;
+        return allocateNode(smallestMemoryAddress, bytes);
     }
     if (smallestMemoryAddress->size >= bytes) {
-        smallestMemoryAddress->isFree == false;
+        smallestMemoryAddress->isFree = false;
         return smallestMemoryAddress + 1;
+    }
+    return NULL;
+};
+
+void *allocateWorstFit(size_t bytes) {
+
+    Node *largestMemoryAddress = NULL;
+    size_t largestMemory = 0;
+
+    for (Node *node = first; node != NULL; node = node->next) {
+        if (node->isFree && node->size > largestMemory && node->size >= bytes) {
+            largestMemoryAddress = node;
+            largestMemory = node->size;
+        }
+    }
+
+    if (largestMemoryAddress == NULL) {
+        return NULL;
+    }
+
+    if (largestMemoryAddress->size >= (bytes + sizeof(Node))) {
+        return allocateNode(largestMemoryAddress, bytes);
+    }
+    if (largestMemoryAddress->size >= bytes) {
+        largestMemoryAddress->isFree = false;
+        return largestMemoryAddress + 1;
     }
     return NULL;
 };
@@ -101,10 +115,135 @@ void deallocate ( void *memory ){
 };
 
 
-int main() {
-    void *heap = malloc(sizeof(200));
-    size_t size = 200;
-    initialise(&heap, size);
-    allocateBestFit(200);
+
+void printNode(){
+    Node* node = first;
+    do{
+
+        printf("address %d - next %d - previous %d - isFree %i - size %u \n", node, node->next, node->previous, node->isFree, node->size);
+        node = node->next;
+    } while(node != NULL);
+    printf("end\n");
+}
+
+
+//allocate all, de allocate B - no merging
+static void case1(){
+    void* a = allocateBestFit(50);
+    void* b = allocateBestFit(50);
+    void* c = allocateBestFit(50);
+    printNode();
+    deallocate(b);
+    printNode();
+
+}
+
+//allocate a and b, de allocate b - merge b and remaining space
+static void case2(){
+    void* a = allocateBestFit(50);
+    void* b = allocateBestFit(50);
+    printNode();
+    deallocate(b);
+    printNode();
+
+}
+
+//allocate all, deallocate a & b - a & b merge
+static void case3(){
+    void* a = allocateBestFit(50);
+    void* b = allocateBestFit(50);
+    void* c = allocateBestFit(50);
+    printNode();
+    deallocate(a);
+    printNode();
+    deallocate(b);
+    printNode();
+
+}
+
+//allocate all, deallocate a, c, b - all merge
+static void case4(){
+    printNode();
+    void* a = allocateBestFit(50);
+    void* b = allocateBestFit(50);
+    void* c = allocateBestFit(50);
+    printNode();
+    deallocate(a);
+    printNode();
+    deallocate(c);
+    printNode();
+    deallocate(b);
+    printNode();
+}
+
+//allocate all memory - all nodes not free
+static void case5(){
+    printNode();
+    void* a = allocateBestFit(50);
+    void* b = allocateBestFit(50);
+    void* c = allocateBestFit(50);
+    printNode();
+    void* d = allocateBestFit(191);
+    printNode();
+}
+
+//allocate 9
+static void bestFitTest10(){
+    printNode();
+    void* a = allocateBestFit(50);
+    void* b = allocateBestFit(20);
+    void* c = allocateBestFit(50);
+    void* d = allocateBestFit(10);
+    void* e = allocateBestFit(50);
+    printNode();
+    deallocate(b);
+    printNode();
+    deallocate(d);
+    printNode();
+    void* f = allocateBestFit(9);
+    printNode();
+}
+
+//allocate 19
+static void bestFitTest20(){
+    printNode();
+    void* a = allocateBestFit(50);
+    void* b = allocateBestFit(10);
+    void* c = allocateBestFit(50);
+    void* d = allocateBestFit(20);
+    void* e = allocateBestFit(50);
+    printNode();
+    deallocate(a);
+    printNode();
+    deallocate(d);
+    printNode();
+    void* f = allocateBestFit(19);
+    printNode();
+}
+
+static void worstFitTest20(){
+    printNode();
+    void* a = allocateWorstFit(120);
+    void* b = allocateWorstFit(10);
+    void* c = allocateWorstFit(50);
+    void* d = allocateWorstFit(20);
+    void* e = allocateWorstFit(50);
+    printNode();
+    deallocate(a);
+    printNode();
+    deallocate(d);
+    printNode();
+    void* f = allocateWorstFit(19);
+    printNode();
+}
+
+int main(){
+    setvbuf(stdout, NULL, _IONBF, 0);
+    setvbuf(stderr, NULL, _IONBF, 0);
+    void* heap = malloc(1500);
+    size_t size = 500;
+    initialise(heap, size);
+
+    worstFitTest20();
 
 }
