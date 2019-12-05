@@ -81,23 +81,23 @@ void *allocateBestFit(size_t bytes) {
     return NULL;
 };
 
-void deallocate(void *memory) {
-    Node *node = (Node *) memory - 1;
+void deallocate ( void *memory ){
+    Node* node = (Node*) memory - 1;
     node->isFree = true;
 
-    if (node->next != NULL && node->next->isFree) {
-        node->next = node->next->next;
-        if (node->next != NULL)
-            node->next->previous = node;
+    if(node->next != NULL && node->next->isFree){
         node->size += node->next->size + sizeof(Node);
+        node->next = node->next->next;
+        if(node->next != NULL){
+            node->next->previous = node;
+        }
     }
-    if (node->previous != NULL && node->previous->isFree) {
-        node->previous->next = node->next;
-        if (node->next != NULL)
-            node->next->previous = node->previous;
+    if(node->previous != NULL && node->previous->isFree){
         node->previous->size += node->size + sizeof(Node);
+        node->previous->next = node->next;
+        if(node->next != NULL)
+            node->next->previous = node->previous;
     }
-
 };
 
 

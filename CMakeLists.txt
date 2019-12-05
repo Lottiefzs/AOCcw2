@@ -3,4 +3,4 @@ project(AOCcw2 C)
 
 set(CMAKE_C_STANDARD 11)
 
-add_executable(AOCcw2 part2.c part2.h)
+add_executable(AOCcw2 part1.c part1.h)
