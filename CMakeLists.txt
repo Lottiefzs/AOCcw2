@@ -3,4 +3,6 @@ project(AOCcw2 C)
 
 set(CMAKE_C_STANDARD 11)
 
-add_executable(AOCcw2 part2.c part2.h)
+file(GLOB SOURCES *.h *c)
+
+add_executable(AOCcw2 part3.c part3_test.c)

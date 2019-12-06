@@ -1,6 +1,22 @@
-//
-// Created by charl on 28/11/2019.
-//
+/*****************************************************************************
+
+ File        : part1.c
+
+ Date        : 5th December 2019
+
+ Description : Implementation of a basic memory manager, using the "First Fit"
+                strategy. Providing three functions:
+                - initalise() to initalise the memory manager from a pointer to a
+                block of memory the size of the heap size given in bytes.
+                - allocate() returns a segment of dynamically allocated memory of
+                the specified size in bytes.
+                - deallocate() - used to free a block of dynamically allocated memory
+
+ Author      : Rebecca Lloyd 100255844 & Charlotte Langton 100250741
+
+ History     : 05/12/2019 - v1.00
+
+ ******************************************************************************/
 
 #include <stdlib.h>
 #include <stdio.h>
@@ -16,7 +32,11 @@ typedef struct Node{
     size_t size;
 }Node;
 
-
+/**
+ * Initialise the memory manager from a pointer to a block of memory the size of the heap size given in bytes.
+ * @param memory
+ * @param size
+ */
 void initialise ( void * memory , size_t size ){
     first = (Node*) memory;
     first->size = size - sizeof(Node);
@@ -25,6 +45,11 @@ void initialise ( void * memory , size_t size ){
     first->previous = NULL;
 };
 
+/**
+ * Returns a segment of dynamically allocated memory of the specified size in bytes.
+ * @param bytes size of memory requested
+ * @return pointer to start of memory allocated, or null if no memory available
+ */
 void* allocate ( size_t bytes ){
     for (Node* node = first; node != NULL ; node = node->next) {
         if(node->isFree && node->size >= (bytes + sizeof(Node))){
@@ -48,6 +73,10 @@ void* allocate ( size_t bytes ){
     return NULL;
 };
 
+/**
+ * Used to free a block of dynamically allocated memory
+ * @param memory pointer to start of memory to be deallocated
+ */
 void deallocate ( void *memory ){
     Node* node = (Node*) memory - 1;
     node->isFree = true;
@@ -67,88 +96,20 @@ void deallocate ( void *memory ){
     }
 };
 
+/**
+ *
+ */
 void printNode(){
     Node* node = first;
     do{
 
-            printf("address %d - next %d - previous %d - isFree %i - size %u \n", node, node->next, node->previous, node->isFree, node->size);
-            node = node->next;
+        printf("address %d - next %d - previous %d - isFree %i - size %u \n", node, node->next, node->previous, node->isFree, node->size);
+        node = node->next;
     } while(node != NULL);
     printf("end\n");
 }
 
 
-//allocate all, de allocate B - no merging
-static void case1(){
-    void* a = allocate(50);
-    void* b = allocate(50);
-    void* c = allocate(50);
-    printNode();
-    deallocate(b);
-    printNode();
-
-}
-
-//allocate a and b, de allocate b - merge b and remaining space
-static void case2(){
-    void* a = allocate(50);
-    void* b = allocate(50);
-    printNode();
-    deallocate(b);
-    printNode();
-
-}
-
-//allocate all, deallocate a & b - a & b merge
-static void case3(){
-    void* a = allocate(50);
-    void* b = allocate(50);
-    void* c = allocate(50);
-    printNode();
-    deallocate(a);
-    printNode();
-    deallocate(b);
-    printNode();
-
-}
-
-//allocate all, deallocate a, c, b - all merge
-static void case4(){
-    printNode();
-    void* a = allocate(50);
-    void* b = allocate(50);
-    void* c = allocate(50);
-    printNode();
-    deallocate(a);
-    printNode();
-    deallocate(c);
-    printNode();
-    deallocate(b);
-    printNode();
-}
-
-//allocate all memory - all nodes not free
-static void case5(){
-    printNode();
-    void* a = allocate(50);
-    void* b = allocate(50);
-    void* c = allocate(50);
-    printNode();
-    void* d = allocate(191);
-    printNode();
-
-}
 
 
-int main(){
-    setvbuf(stdout, NULL, _IONBF, 0);
-    setvbuf(stderr, NULL, _IONBF, 0);
-    void* heap = malloc(1500);
-    size_t size = 500;
-    initialise(heap, size);
-
-
-    case5();
-
-}
 

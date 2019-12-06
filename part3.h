@@ -1,11 +1,10 @@
 /*****************************************************************************
 
- File        : part2.h
+ File        : part3.h
 
  Date        : 5th December 2019
 
- Description : Header file for implementation of a memory manager with best fit,
-                worst fit and next fit algorithms
+ Description :
 
  Author      : Rebecca Lloyd 100255844 & Charlotte Langton 100250741
 
@@ -13,8 +12,8 @@
 
  ******************************************************************************/
 
-#ifndef AOCCW2_PART2_H
-#define AOCCW2_PART2_H
+#ifndef AOCCW2_PART3_H
+#define AOCCW2_PART3_H
 
 #include <stddef.h>
 
@@ -32,4 +31,4 @@ void deallocate ( void *memory );
 
 void printNode();
 
-#endif //AOCCW2_PART2_H
+#endif //AOCCW2_PART3_H
