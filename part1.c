@@ -1,17 +1,11 @@
 /*****************************************************************************
-
  File        : part1.c
 
  Date        : 5th December 2019
 
- Description : Implementation of a basic memory manager, using the "First Fit"
-                strategy. Providing three functions:
-                - initalise() to initalise the memory manager from a pointer to a
-                block of memory the size of the heap size given in bytes.
-                - allocate() returns a segment of dynamically allocated memory of
-                the specified size in bytes.
-                - deallocate() - used to free a block of dynamically allocated memory
-
+ Description : Sourse file for implementation of a basic memory manager, using the
+                "First Fit" strategy.
+                
  Author      : Rebecca Lloyd 100255844 & Charlotte Langton 100250741
 
  History     : 05/12/2019 - v1.00
@@ -23,36 +17,35 @@
 #include <stdbool.h>
 #include "part1.h"
 
+//Start of heap
 Node* first;
+//Size of heap when initialised
+size_t heapSize;
 
-typedef struct Node{
-    struct Node * next;
-    struct Node * previous;
-    bool isFree;
-    size_t size;
-}Node;
 
-/**
- * Initialise the memory manager from a pointer to a block of memory the size of the heap size given in bytes.
- * @param memory
- * @param size
- */
-void initialise ( void * memory , size_t size ){
+void initialise (void *memory , size_t size){
     first = (Node*) memory;
     first->size = size - sizeof(Node);
     first->isFree = true;
     first->next = NULL;
     first->previous = NULL;
+    heapSize = size;
 };
 
-/**
- * Returns a segment of dynamically allocated memory of the specified size in bytes.
- * @param bytes size of memory requested
- * @return pointer to start of memory allocated, or null if no memory available
- */
-void* allocate ( size_t bytes ){
+void* allocate (size_t bytes){
+    //Check if heap is initialised
+    if(first == NULL){
+        fprintf(stderr,"Error: Heap not initialised \n");
+        return NULL;
+    }
+    if(bytes == 0){
+        fprintf(stderr,"Error: No memory allocated as requested bytes = %d \n", bytes);
+        return NULL;
+    }
     for (Node* node = first; node != NULL ; node = node->next) {
-        if(node->isFree && node->size >= (bytes + sizeof(Node))){
+        //if the current node is free and the size available in the node is enough for the requested memory
+        // and the size of Node + 1
+        if(node->isFree && node->size > (bytes + sizeof(Node))){
             node->isFree = false;
             Node* new = (Node*) ((char*) node + bytes + sizeof(Node));
             new->next=node->next;
@@ -65,6 +58,8 @@ void* allocate ( size_t bytes ){
             node->size = bytes;
             return node + 1;
         }
+        //if the current node is free and the size available in the node is enough for the requested memory
+        // but not for a new node
         if(node->isFree && node->size >= bytes){
             node->isFree = false;
             return node + 1;
@@ -73,36 +68,53 @@ void* allocate ( size_t bytes ){
     return NULL;
 };
 
-/**
- * Used to free a block of dynamically allocated memory
- * @param memory pointer to start of memory to be deallocated
- */
 void deallocate ( void *memory ){
-    Node* node = (Node*) memory - 1;
-    node->isFree = true;
+    //Check that the heap has been initialised
+    if(first == NULL){
+        fprintf(stderr,"Error: Heap not initialised \n");
+        return;
+    }
 
+    //Check that the memory given is within the heap
+    if((Node*) memory < first || (Node*) memory > first+heapSize){
+        fprintf(stderr,"Error: Memory address given outside of heap, cannot deallocate \n");
+        return;
+    }
+
+    //Get node at the start of the memory
+    Node* node = (Node*) memory - 1;
+
+    //Check if node is already free
+    if(node->isFree){
+        fprintf(stderr,"Error: Node already free \n");
+        return;
+    }
+
+    node->isFree = true;
+    //If node to deallocates' 'next' is not NULL and the node is free
     if(node->next != NULL && node->next->isFree){
+        //Set node to deallocates' size to the current size + the next nodes size and the size of a node
         node->size += node->next->size + sizeof(Node);
+        //Set node to deallocates next to the next nodes next
         node->next = node->next->next;
+        //If nodes new next is != NULL, set next nodes, previous to deallocated node
         if(node->next != NULL){
             node->next->previous = node;
         }
     }
+    //If nodes previous != NULL and the node previous to the deallocated node is free
     if(node->previous != NULL && node->previous->isFree){
         node->previous->size += node->size + sizeof(Node);
         node->previous->next = node->next;
+        //If nodes new next is != NULL, set next nodes, previous to deallocated node
         if(node->next != NULL)
             node->next->previous = node->previous;
     }
 };
 
-/**
- *
- */
 void printNode(){
     Node* node = first;
     do{
-
         printf("address %d - next %d - previous %d - isFree %i - size %u \n", node, node->next, node->previous, node->isFree, node->size);
         node = node->next;
     } while(node != NULL);
