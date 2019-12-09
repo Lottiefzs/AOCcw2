@@ -68,7 +68,7 @@ void* allocate (size_t bytes){
     return NULL;
 };
 
-void deallocate ( void *memory ){
+void deallocate (void *memory){
     //Check that the heap has been initialised
     if(first == NULL){
         fprintf(stdout,"Error: Heap not initialised \n");
