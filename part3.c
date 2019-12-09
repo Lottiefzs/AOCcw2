@@ -185,7 +185,6 @@ void deallocate(void *memory) {
     pthread_mutex_lock(&mutex);
     if(memory == NULL){
         fprintf(stdout,"Error: memory is null \n");
-        pthread_mutex_unlock(&mutex);
         return;
     }
     //Check is heap has been initialised
