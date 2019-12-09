@@ -56,7 +56,7 @@ static void worstFitTest10() {
     void *a = allocate(10);
     void *b = allocate(10);
     void *c = allocate(50);
-    void *d = allocate(120);
+    void *d = allocate(180);
     void *e = allocate(50);
     deallocate(a);
     deallocate(d);
@@ -70,7 +70,7 @@ static void worstFitTest10() {
 }
 
 static void worstFitTest20() {
-    void *a = allocate(120);
+    void *a = allocate(180);
     void *b = allocate(10);
     void *c = allocate(50);
     void *d = allocate(20);
@@ -115,10 +115,6 @@ int main() {
     size_t size = 500;
 
     printf("----------------------------------------------------------\n");
-    printf("Check algorithm is valid \n");
-    validAlgo(heap, size);
-
-    printf("----------------------------------------------------------\n");
     printf("Allocating memory using Best Fit \n");
     initialise(heap, size, "bestFit");
     bestFitTest10();
@@ -140,6 +136,10 @@ int main() {
     printf("Allocating memory using next Fit \n");
     initialise(heap, size, "nextFit");
     nextFitTest();
+
+    printf("----------------------------------------------------------\n");
+    printf("Check algorithm is valid \n");
+    validAlgo(heap, size);
 
     free(heap);
 }
