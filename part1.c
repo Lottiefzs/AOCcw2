@@ -114,11 +114,13 @@ void deallocate ( void *memory ){
 
 void printNode(){
     Node* node = first;
+    printf("----------------------------------------------------------\n");
     do{
-        printf("address %d - next %d - previous %d - isFree %i - size %u \n", node, node->next, node->previous, node->isFree, node->size);
+        printf(" Node address %d - Next %d - Previous %d - isFree %i - Size %u \n", node, node->next,
+                node->previous, node->isFree, node->size);
         node = node->next;
     } while(node != NULL);
-    printf("end\n");
+    printf("----------------------------------------------------------\n");
 }
 
 

@@ -6,7 +6,7 @@
 
  Description : Test harness for implementation of a basic memory manager in part1.c
 
- Author      : Rebecca Lloyd 100255844 & Charlotte Langton 100250741
+ Authors      : Rebecca Lloyd 100255844 & Charlotte Langton 100250741
 
  History     : 05/12/2019 - v1.00
 
@@ -79,10 +79,21 @@ static void case5(){
     void* a = allocate(50);
     void* b = allocate(50);
     void* c = allocate(50);
-    printNode();
     void* d = allocate(191);
     printNode();
 
+}
+
+static void allocate0bytes(){
+    allocate(0);
+}
+
+static void deallocateTwice(){
+    void* a = allocate(50);
+    void* b = allocate(50);
+    void* c = allocate(50);
+    deallocate(b);
+    deallocate(b);
 }
 
 
@@ -91,21 +102,53 @@ int main(){
     setvbuf(stderr, NULL, _IONBF, 0);
     void* heap = malloc(1500);
     size_t size = 500;
+    printf("----------------------------------------------------------\n");
+    //Expected error message as heap not initialised
+    printf("Allocate memory when no heap initialised \n");
+    if(allocate(100) == NULL){
+        printf("Test passed. No memory allocated a heap not initialised. \n");
+    } else {
+        printf("Test failed. Memory allocated when heap not initialised. \n");
+    }
     initialise(heap, size);
-
-    //allocate test First Fit
+    printf("----------------------------------------------------------\n");
+    //Expected error message as heap not initialised
+    printf("Allocate memory greater than heap size \n");
+    if(allocate(10000) == NULL){
+        printf("Test passed. No memory allocated as not enough size in heap. \n");
+    } else {
+        printf("Test failed. Memory allocated when space not available. \n");
+    }
+    printf("----------------------------------------------------------\n");
+    printf("Deallocating memory not in heap should produce - Error: Memory address given outside of heap, cannot deallocate \n");
+    deallocate(10);
+    printf("----------------------------------------------------------\n");
+    printf("Deallocating the same memory twice should produce - Error: Node already free \n");
+    deallocateTwice();
+    initialise(heap, size);
+    printf("----------------------------------------------------------\n");
+    printf("Allocate 0 bytes should produce - Error: No memory allocated as requested bytes = 0 \n");
+    allocate0bytes();
+    printf("----------------------------------------------------------\n");
+    printf("Allocate 3 nodes - all 50 bytes \n");
     allocateTest();
-
-    //deallocate tests
     initialise(heap, size);
+    printf("----------------------------------------------------------\n");
+    printf("Deallocate \n");
+    printf("Case 1 - Allocate all, Deallocate B - no merging \n");
     case1();
     initialise(heap, size);
+    printf("Case 2 - allocate a and b, de allocate b - merge b and remaining space\n");
     case2();
     initialise(heap, size);
+    printf("Case 3 - allocate all, deallocate a & b - a & b merge \n");
     case3();
     initialise(heap, size);
-    case4;
+    printf("Case 4 - allocate all, deallocate a, c, b - all merge\n");
+    case4();
     initialise(heap, size);
+    printf("Case 5 - allocate all memory - no nodes free\n");
     case5();
+
 
 }
