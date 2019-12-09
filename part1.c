@@ -69,6 +69,11 @@ void* allocate (size_t bytes){
 };
 
 void deallocate (void *memory){
+    if(memory == NULL){
+        fprintf(stdout,"Error: memory is null \n");
+        pthread_mutex_unlock(&mutex);
+        return;
+    }
     //Check that the heap has been initialised
     if(first == NULL){
         fprintf(stdout,"Error: Heap not initialised \n");

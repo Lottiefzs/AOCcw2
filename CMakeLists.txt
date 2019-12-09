@@ -5,4 +5,4 @@ set(CMAKE_C_STANDARD 11)
 set(-pthread)
 file(GLOB SOURCES *.h *c)
 
-add_executable(AOCcw2 part2.c part2_test.c)
+add_executable(AOCcw2 part3.c part3_test.c)
