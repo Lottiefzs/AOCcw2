@@ -46,16 +46,17 @@ void initialise(void *memory, size_t size, char *algorithm) {
     first->next = NULL;
     first->previous = NULL;
     lastVisitedNode = first;
+    heapSize = size;
 };
 
 void *allocateBestFit(size_t bytes) {
     //Check if heap is initialised
     if(first == NULL){
-        fprintf(stderr,"Error: Heap not initialised \n");
+        fprintf(stdout,"Error: Heap not initialised \n");
         return NULL;
     }
     if(bytes == 0){
-        fprintf(stderr,"Error: No memory allocated as requested bytes = 0 \n");
+        fprintf(stdout,"Error: No memory allocated as requested bytes = 0 \n");
         return NULL;
     }
     Node *smallestMemoryAddress = NULL;
@@ -88,11 +89,11 @@ void *allocateBestFit(size_t bytes) {
 void *allocateWorstFit(size_t bytes) {
     //Check if heap is initialised
     if(first == NULL){
-        fprintf(stderr,"Error: Heap not initialised \n");
+        fprintf(stdout,"Error: Heap not initialised \n");
         return NULL;
     }
     if(bytes == 0){
-        fprintf(stderr,"Error: No memory allocated as requested bytes = 0 \n");
+        fprintf(stdout,"Error: No memory allocated as requested bytes = 0 \n");
         return NULL;
     }
 
@@ -128,11 +129,11 @@ void *allocateWorstFit(size_t bytes) {
 void *allocateNextFit(size_t bytes) {
     //Check if heap is initialised
     if(first == NULL){
-        fprintf(stderr, "Error: Heap not initialised \n");
+        fprintf(stdout, "Error: Heap not initialised \n");
         return NULL;
     }
     if(bytes == 0){
-        fprintf(stderr,"Error: No memory allocated as requested bytes = 0 \n");
+        fprintf(stdout,"Error: No memory allocated as requested bytes = 0 \n");
         return NULL;
     }
     Node *node = lastVisitedNode;
@@ -162,19 +163,19 @@ void *allocateNextFit(size_t bytes) {
 void deallocate(void *memory) {
     //Check is heap has been initialised
     if(first == NULL){
-        fprintf(stderr,"Error: Heap not initialised \n");
+        fprintf(stdout,"Error: Heap not initialised \n");
         return;
     }
     //Check if memory address is within heap
     if((Node*) memory < first || (Node*) memory > first+heapSize){
-        fprintf(stderr,"Error: Memory given outside of heap, cannot deallocate \n");
+        fprintf(stdout,"Error: Memory given outside of heap, cannot deallocate \n");
         return;
     }
     //Get node at the start of the memory
     Node *node = (Node *) memory - 1;
     //Check if memory is already free
     if(node->isFree){
-        fprintf(stderr,"Error: Node already free \n");
+        fprintf(stdout,"Error: Node already free \n");
         return;
     }
     node->isFree = true;
@@ -214,14 +215,14 @@ Node *allocateNode(Node *node, int bytes) {
     return node + 1;
 }
 
-void printNode() {
-    Node *node = first;
-    do {
-
-        printf("address %d - next %d - previous %d - isFree %i - size %u \n", node, node->next, node->previous,
-               node->isFree, node->size);
+void printNode(){
+    Node* node = first;
+    printf("----------------------------------------------------------\n");
+    do{
+        printf(" Node address %d - Next %d - Previous %d - isFree %i - Size %u \n", node, node->next,
+               node->previous, node->isFree, node->size);
         node = node->next;
-    } while (node != NULL);
-    printf("end\n");
+    } while(node != NULL);
+    printf("----------------------------------------------------------\n");
 }
 

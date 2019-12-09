@@ -3,10 +3,10 @@
 
  Date        : 5th December 2019
 
- Description : Sourse file for implementation of a basic memory manager, using the
+ Description : Source file for implementation of a basic memory manager, using the
                 "First Fit" strategy.
-                
- Author      : Rebecca Lloyd 100255844 & Charlotte Langton 100250741
+
+ Authors      : Rebecca Lloyd 100255844 & Charlotte Langton 100250741
 
  History     : 05/12/2019 - v1.00
 
@@ -35,11 +35,11 @@ void initialise (void *memory , size_t size){
 void* allocate (size_t bytes){
     //Check if heap is initialised
     if(first == NULL){
-        fprintf(stderr,"Error: Heap not initialised \n");
+        fprintf(stdout,"Error: Heap not initialised \n");
         return NULL;
     }
     if(bytes == 0){
-        fprintf(stderr,"Error: No memory allocated as requested bytes = %d \n", bytes);
+        fprintf(stdout,"Error: No memory allocated as requested bytes = %d \n", bytes);
         return NULL;
     }
     for (Node* node = first; node != NULL ; node = node->next) {
@@ -71,13 +71,13 @@ void* allocate (size_t bytes){
 void deallocate ( void *memory ){
     //Check that the heap has been initialised
     if(first == NULL){
-        fprintf(stderr,"Error: Heap not initialised \n");
+        fprintf(stdout,"Error: Heap not initialised \n");
         return;
     }
 
     //Check that the memory given is within the heap
     if((Node*) memory < first || (Node*) memory > first+heapSize){
-        fprintf(stderr,"Error: Memory address given outside of heap, cannot deallocate \n");
+        fprintf(stdout,"Error: Memory address given outside of heap, cannot deallocate \n");
         return;
     }
 
@@ -86,7 +86,7 @@ void deallocate ( void *memory ){
 
     //Check if node is already free
     if(node->isFree){
-        fprintf(stderr,"Error: Node already free \n");
+        fprintf(stdout,"Error: Node already free \n");
         return;
     }
 

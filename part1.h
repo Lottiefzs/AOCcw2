@@ -6,7 +6,7 @@
  Description :  Header file for implementation of a basic memory manager, using the
                 "First Fit" strategy.
 
- Author      : Rebecca Lloyd 100255844 & Charlotte Langton 100250741
+ Authors      : Rebecca Lloyd 100255844 & Charlotte Langton 100250741
 
  History     : 05/12/2019 - v1.00
 
