@@ -89,9 +89,9 @@ static void worstFitTest20() {
 static void nextFitTest() {
     void *a = allocate(10);
     void *b = allocate(100);
-    void *c = allocate(50);
-    void *d = allocate(20);
-    void *e = allocate(50);
+    void *c = allocate(70);
+    void *d = allocate(50);
+    void *e = allocate(90);
     printf("last visited - %d \n", (Node*)e - 1);
     deallocate(b);
     deallocate(d);
