@@ -37,7 +37,7 @@ void initialise(void *memory, size_t size, char *algorithm) {
         allocate = &allocateNextFit;
     } else {
         printf("Error: algorithm string given for allocate not valid. Heap not initialised. \n");
-        return;
+        exit(EXIT_FAILURE);
     }
     first = (Node *) memory;
     first->size = size - sizeof(Node);
