@@ -41,7 +41,7 @@ void* allocate ( size_t bytes ){
             return node + 1;
         }
         if(node->isFree && node->size >= bytes){
-            node->isFree == false;
+            node->isFree = false;
             return node + 1;
         }
     }
@@ -53,24 +53,102 @@ void deallocate ( void *memory ){
     node->isFree = true;
 
     if(node->next != NULL && node->next->isFree){
-        node->next = node->next->next;
-        if(node->next != NULL)
-            node->next->previous = node;
         node->size += node->next->size + sizeof(Node);
+        node->next = node->next->next;
+        if(node->next != NULL){
+            node->next->previous = node;
+        }
     }
     if(node->previous != NULL && node->previous->isFree){
+        node->previous->size += node->size + sizeof(Node);
         node->previous->next = node->next;
         if(node->next != NULL)
             node->next->previous = node->previous;
-        node->previous->size += node->size + sizeof(Node);
     }
-
 };
 
-int main(){
-    void* heap = malloc(sizeof(200));
-    size_t size = 200;
-    initialise(&heap, size);
-    allocate(200);
+void printNode(){
+    Node* node = first;
+    do{
+
+            printf("address %d - next %d - previous %d - isFree %i - size %u \n", node, node->next, node->previous, node->isFree, node->size);
+            node = node->next;
+    } while(node != NULL);
+    printf("end\n");
+}
+
+
+//allocate all, de allocate B - no merging
+static void case1(){
+    void* a = allocate(50);
+    void* b = allocate(50);
+    void* c = allocate(50);
+    printNode();
+    deallocate(b);
+    printNode();
 
 }
+
+//allocate a and b, de allocate b - merge b and remaining space
+static void case2(){
+    void* a = allocate(50);
+    void* b = allocate(50);
+    printNode();
+    deallocate(b);
+    printNode();
+
+}
+
+//allocate all, deallocate a & b - a & b merge
+static void case3(){
+    void* a = allocate(50);
+    void* b = allocate(50);
+    void* c = allocate(50);
+    printNode();
+    deallocate(a);
+    printNode();
+    deallocate(b);
+    printNode();
+
+}
+
+//allocate all, deallocate a, c, b - all merge
+static void case4(){
+    printNode();
+    void* a = allocate(50);
+    void* b = allocate(50);
+    void* c = allocate(50);
+    printNode();
+    deallocate(a);
+    printNode();
+    deallocate(c);
+    printNode();
+    deallocate(b);
+    printNode();
+}
+
+//allocate all memory - all nodes not free
+static void case5(){
+    printNode();
+    void* a = allocate(50);
+    void* b = allocate(50);
+    void* c = allocate(50);
+    printNode();
+    void* d = allocate(191);
+    printNode();
+
+}
+
+
+int main(){
+    setvbuf(stdout, NULL, _IONBF, 0);
+    setvbuf(stderr, NULL, _IONBF, 0);
+    void* heap = malloc(1500);
+    size_t size = 500;
+    initialise(heap, size);
+
+
+    case5();
+
+}
+

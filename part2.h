@@ -9,9 +9,13 @@
 
 typedef struct Node Node;
 
-void initialise ( void *memory , size_t size );
+void initialise ( void *memory , size_t size, char *algorithm );
 
 void *allocateBestFit (size_t bytes );
+
+void *allocateWorstFit (size_t bytes );
+
+void *allocateNextFit (size_t bytes );
 
 void deallocate ( void *memory );
 
