@@ -20,6 +20,8 @@
 #include <stddef.h>
 #include <stdbool.h>
 
+//Function pointer to requested allocate function
+void* (*allocate)(size_t bytes);
 
 typedef struct Node{
     //Points to next node in list
