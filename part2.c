@@ -25,8 +25,7 @@ Node* first;
 size_t heapSize;
 //Last visited node for Next Fit allocate function
 Node *lastVisitedNode;
-//Function pointer to requested allocate function
-void* (*allocate)(size_t bytes);
+
 
 void initialise(void *memory, size_t size, char *algorithm) {
     //Check algorithm is valid
@@ -179,6 +178,8 @@ void deallocate(void *memory) {
         return;
     }
     node->isFree = true;
+    lastVisitedNode = node;
+
     //If node to deallocates' 'next' is not NULL and the node is free
     if(node->next != NULL && node->next->isFree){
         //Set node to deallocates' size to the current size + the next nodes size and the size of a node
@@ -192,6 +193,7 @@ void deallocate(void *memory) {
     }
     //If nodes previous != NULL and the node previous to the deallocated node is free
     if(node->previous != NULL && node->previous->isFree){
+        lastVisitedNode = node->previous;
         node->previous->size += node->size + sizeof(Node);
         node->previous->next = node->next;
         //If nodes new next is != NULL, set next nodes, previous to deallocated node
