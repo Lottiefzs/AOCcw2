@@ -1,33 +1,51 @@
-//
-// Created by charl on 28/11/2019.
-//
+/*****************************************************************************
+ File        : part1.c
+
+ Date        : 5th December 2019
+
+ Description : Source file for implementation of a basic memory manager, using the
+                "First Fit" strategy.
+
+ Authors      : Rebecca Lloyd 100255844 & Charlotte Langton 100250741
+
+ History     : 05/12/2019 - v1.00
+
+ ******************************************************************************/
 
 #include <stdlib.h>
 #include <stdio.h>
 #include <stdbool.h>
 #include "part1.h"
 
+//Start of heap
 Node* first;
-
-typedef struct Node{
-    struct Node * next;
-    struct Node * previous;
-    bool isFree;
-    size_t size;
-}Node;
+//Size of heap when initialised
+size_t heapSize;
 
 
-void initialise ( void * memory , size_t size ){
+void initialise (void *memory , size_t size){
     first = (Node*) memory;
     first->size = size - sizeof(Node);
     first->isFree = true;
     first->next = NULL;
     first->previous = NULL;
+    heapSize = size;
 };
 
-void* allocate ( size_t bytes ){
+void* allocate (size_t bytes){
+    //Check if heap is initialised
+    if(first == NULL){
+        fprintf(stdout,"Error: Heap not initialised \n");
+        return NULL;
+    }
+    if(bytes == 0){
+        fprintf(stdout,"Error: No memory allocated as requested bytes = %d \n", bytes);
+        return NULL;
+    }
     for (Node* node = first; node != NULL ; node = node->next) {
-        if(node->isFree && node->size >= (bytes + sizeof(Node))){
+        //if the current node is free and the size available in the node is enough for the requested memory
+        // and the size of Node + 1
+        if(node->isFree && node->size > (bytes + sizeof(Node))){
             node->isFree = false;
             Node* new = (Node*) ((char*) node + bytes + sizeof(Node));
             new->next=node->next;
@@ -40,6 +58,8 @@ void* allocate ( size_t bytes ){
             node->size = bytes;
             return node + 1;
         }
+        //if the current node is free and the size available in the node is enough for the requested memory
+        // but not for a new node
         if(node->isFree && node->size >= bytes){
             node->isFree = false;
             return node + 1;
@@ -48,20 +68,45 @@ void* allocate ( size_t bytes ){
     return NULL;
 };
 
-void deallocate ( void *memory ){
-    Node* node = (Node*) memory - 1;
-    node->isFree = true;
+void deallocate (void *memory){
+    //Check that the heap has been initialised
+    if(first == NULL){
+        fprintf(stdout,"Error: Heap not initialised \n");
+        return;
+    }
 
+    //Check that the memory given is within the heap
+    if((Node*) memory < first || (Node*) memory > first+heapSize){
+        fprintf(stdout,"Error: Memory address given outside of heap, cannot deallocate \n");
+        return;
+    }
+
+    //Get node at the start of the memory
+    Node* node = (Node*) memory - 1;
+
+    //Check if node is already free
+    if(node->isFree){
+        fprintf(stdout,"Error: Node already free \n");
+        return;
+    }
+
+    node->isFree = true;
+    //If node to deallocates' 'next' is not NULL and the node is free
     if(node->next != NULL && node->next->isFree){
+        //Set node to deallocates' size to the current size + the next nodes size and the size of a node
         node->size += node->next->size + sizeof(Node);
+        //Set node to deallocates next to the next nodes next
         node->next = node->next->next;
+        //If nodes new next is != NULL, set next nodes, previous to deallocated node
         if(node->next != NULL){
             node->next->previous = node;
         }
     }
+    //If nodes previous != NULL and the node previous to the deallocated node is free
     if(node->previous != NULL && node->previous->isFree){
         node->previous->size += node->size + sizeof(Node);
         node->previous->next = node->next;
+        //If nodes new next is != NULL, set next nodes, previous to deallocated node
         if(node->next != NULL)
             node->next->previous = node->previous;
     }
@@ -69,86 +114,16 @@ void deallocate ( void *memory ){
 
 void printNode(){
     Node* node = first;
+    printf("----------------------------------------------------------\n");
     do{
-
-            printf("address %d - next %d - previous %d - isFree %i - size %u \n", node, node->next, node->previous, node->isFree, node->size);
-            node = node->next;
+        printf(" Node address %d - Next %d - Previous %d - isFree %i - Size %u \n", node, node->next,
+                node->previous, node->isFree, node->size);
+        node = node->next;
     } while(node != NULL);
-    printf("end\n");
+    printf("----------------------------------------------------------\n");
 }
 
 
-//allocate all, de allocate B - no merging
-static void case1(){
-    void* a = allocate(50);
-    void* b = allocate(50);
-    void* c = allocate(50);
-    printNode();
-    deallocate(b);
-    printNode();
-
-}
-
-//allocate a and b, de allocate b - merge b and remaining space
-static void case2(){
-    void* a = allocate(50);
-    void* b = allocate(50);
-    printNode();
-    deallocate(b);
-    printNode();
-
-}
-
-//allocate all, deallocate a & b - a & b merge
-static void case3(){
-    void* a = allocate(50);
-    void* b = allocate(50);
-    void* c = allocate(50);
-    printNode();
-    deallocate(a);
-    printNode();
-    deallocate(b);
-    printNode();
-
-}
-
-//allocate all, deallocate a, c, b - all merge
-static void case4(){
-    printNode();
-    void* a = allocate(50);
-    void* b = allocate(50);
-    void* c = allocate(50);
-    printNode();
-    deallocate(a);
-    printNode();
-    deallocate(c);
-    printNode();
-    deallocate(b);
-    printNode();
-}
-
-//allocate all memory - all nodes not free
-static void case5(){
-    printNode();
-    void* a = allocate(50);
-    void* b = allocate(50);
-    void* c = allocate(50);
-    printNode();
-    void* d = allocate(191);
-    printNode();
-
-}
 
 
-int main(){
-    setvbuf(stdout, NULL, _IONBF, 0);
-    setvbuf(stderr, NULL, _IONBF, 0);
-    void* heap = malloc(1500);
-    size_t size = 500;
-    initialise(heap, size);
-
-
-    case5();
-
-}
 
